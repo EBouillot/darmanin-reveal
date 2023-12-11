@@ -1,10 +1,39 @@
-// Function to replace occurrences of 'oldString' with 'newString' in a given node
-function replaceText(node) {
+// Define the replacements array
+let replacements = [
+  ['Gérald Darmanin', 'L\'abject Gérald Darmanin'],
+  ['Darmanin', 'L\'abject Darmanin'],
+];
+
+// Function to replace occurrences of specified strings
+function replaceText(node, replacements) {
+  if (!replacements || !Array.isArray(replacements)) {
+    console.error('Replacements array is not properly initialized.');
+    return;
+  }
+
   if (node.nodeType === Node.TEXT_NODE) {
-    node.nodeValue = node.nodeValue.replace(/Darmanin/g, 'L\'abject Darmanin');
+    let content = node.nodeValue;
+
+    // Replace each occurrence with placeholders
+    const placeholders = [];
+    replacements.forEach(([oldString, newString], index) => {
+      const placeholder = `__REPLACE_${index}__`;
+      placeholders.push(placeholder);
+      const regex = new RegExp(`\\b${oldString}\\b`, 'g');
+      content = content.replace(regex, placeholder);
+    });
+
+    // Replace placeholders with actual replacements
+    placeholders.forEach((placeholder, index) => {
+      const [oldString, newString] = replacements[index];
+      const regex = new RegExp(placeholder, 'g');
+      content = content.replace(regex, newString);
+    });
+
+    node.nodeValue = content;
   } else if (node.nodeType === Node.ELEMENT_NODE) {
     for (const childNode of node.childNodes) {
-      replaceText(childNode);
+      replaceText(childNode, replacements);
     }
   }
 }
@@ -30,5 +59,4 @@ observer.observe(document.body, {
 });
 
 // Initial replacement for existing content on the page
-replaceText(document.body);
-
+replaceText(document.body, replacements);
